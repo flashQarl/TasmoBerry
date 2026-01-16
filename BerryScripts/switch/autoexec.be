@@ -1,36 +1,55 @@
-tasmota.cmd("so20 0") # Forze LED power ON
-tasmota.cmd("Color FFFFFF") # White
-tasmota.cmd("so20 1")
+# Version 2
 
-def on_wifi_connected()
+if tasmota.cmd("so20")["SetOption20"] == "ON"
+    tasmota.cmd("so20 0") # Forze LED power ON
+    tasmota.cmd("Color FFFFFF") # White
+    tasmota.cmd("so20 1")
+end
+
+def OnWifiConnected()
     log("QRL: wifi connected")
     tasmota.cmd("Color FF0000") # Red
 end
 
-def on_wifi_disconnected()
+def OnWifiDisconnected()
     log("QRL: wifi disconnected")
     tasmota.cmd("Color FF9900") # Orange
 end
 
-def set_blue_color()
+def SetBlueColor()
     tasmota.cmd("Color 0000FF") # Blue
 end
 
-def on_mqtt_connecting()
+def OnMqttConnecting()
     log("QRL: mqtt connecting...")
     tasmota.cmd("Color FF00FF") # Magenta
-    tasmota.set_timer(500, set_blue_color) # Blue after 300 ms
+    tasmota.set_timer(500, SetBlueColor) # Blue after 300 ms
 end
 
-def on_mqtt_disconnected()
+def OnMqttDisconnected()
     log("QRL: mqtt disconnected")
     tasmota.cmd("Color FF00FF") # Magenta
 end
 
-tasmota.add_rule("Wifi#Connected", on_wifi_connected)
-tasmota.add_rule("Wifi#Disconnected", on_wifi_disconnected)
-tasmota.add_rule("Mqtt#Connected", on_mqtt_connecting)
-tasmota.add_rule("Mqtt#Disconnected", on_mqtt_disconnected)
+tasmota.add_rule("Wifi#Connected", OnWifiConnected)
+tasmota.add_rule("Wifi#Disconnected", OnWifiDisconnected)
+tasmota.add_rule("Mqtt#Connected", OnMqttConnecting)
+tasmota.add_rule("Mqtt#Disconnected", OnMqttDisconnected)
+
+def SetOnIndicator()
+    tasmota.cmd("Color 00FF00")
+end
+
+def SetOffIndicator()
+    tasmota.cmd("Color 0000FF")
+end
+
+def SetErrorIndicator()
+    tasmota.cmd("Color 000070")
+end
+
+tasmota.add_rule("Power1#State=1", SetOnIndicator)
+tasmota.add_rule("Power1#State=0", SetOffIndicator) 
 
 # stat/p2/luz_pasillo/RESULT
 # {"topic":"estancia/interruptor", "power":"POWER1"}
@@ -49,11 +68,11 @@ if mem1 != ""
         var value = message[power]
         
         if value == 'ON'
-            tasmota.cmd("Color 00FF00")
+            SetOnIndicator()
         elif value == 'OFF'
-            tasmota.cmd("Color 0000FF")
+            SetOffIndicator()
         else
-            tasmota.cmd("Color FF00FF")
+            SetErrorIndicator()
             log("Unknown state: " + value)
         end
     end

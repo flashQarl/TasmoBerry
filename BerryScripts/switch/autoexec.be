@@ -1,5 +1,5 @@
 log("------------------------------------------------------------")
-log("QARL: version 3")
+log("QARL: version 4")
 log("------------------------------------------------------------")
 
 import json
@@ -77,7 +77,7 @@ class subscriptions
     end
     
     def add(topic, power, primary)
-        self.list.push(subscription("stat/" + topic + "/RESULT", power, !(primary == "false")))
+        self.list.push(subscription("stat/" + topic + "/RESULT", int(power), !(primary == "false")))
         self.save()
     end
     
@@ -104,10 +104,18 @@ class subscriptions
 
             mqtt.subscribe(subscription.topic, def(topic, idx, payload)
                 var message = json.load(payload)
-                var powerKey = "POWER" + subscription.power;
-                if message.contains(powerKey)
-                    var value = message[powerKey]
-                    
+                
+                var powerKey = "POWER";
+                var powerKeyN = "POWER" + str(subscription.power);
+
+                var value = nil
+                if message.contains(powerKeyN)
+                    value = message[powerKeyN]
+                elif subscription.power == 1 && message.contains(powerKey)
+                    value = message[powerKey]
+                end
+
+                if value != nil
                     if value == "ON"
                         if subscription.primary
                             set_primary_indicator()
@@ -123,7 +131,7 @@ class subscriptions
                 end
             end)
 
-            log("QARL: added subscription for topic: " + subscription.topic + " POWER" + subscription.power + " " + (subscription.primary ? "primary" : "secondary"))
+            log("QARL: added subscription for topic: " + subscription.topic + " POWER" + str(subscription.power) + " " + (subscription.primary ? "primary" : "secondary"))
         end
     end
 end

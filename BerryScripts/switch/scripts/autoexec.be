@@ -1,5 +1,5 @@
 log("------------------------------------------------------------")
-log("QARL: version 6")
+log("QARL: version 8")
 log("------------------------------------------------------------")
 
 import indicator
@@ -8,7 +8,6 @@ import startup_rules
 import power_subscriptions
 import button_subscriptions
 
-indicator.set_startup_color()
 startup_rules.create_startup_rules()
 power_rules.create_power_rules()
 power_subscriptions.create_rules()

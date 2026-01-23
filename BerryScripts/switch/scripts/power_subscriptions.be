@@ -86,16 +86,20 @@ class PowerSubscriptions
                 var value = message.find(subscription.power)
                 if value != nil
                     if value == "ON"
-                        if subscription.indicator == "SECONDARY"
-                            indicator.set_secondary_color()
+                        if subscription.indicator == "PRIMARY"
+                            indicator.set_primary(true)
                         else
-                            indicator.set_primary_color()
+                            indicator.set_secondary(true)
                         end
                     elif value == "OFF"
-                        indicator.set_cleared_color()
+                        if subscription.indicator == "PRIMARY"
+                            indicator.set_primary(false)
+                        else
+                            indicator.set_secondary(false)
+                        end
                     else
                         indicator.set_error_color()
-                        log("QARL: unknown state: " + value)
+                        log("QARL: unknown power state: " + value)
                     end
                 end
             end)

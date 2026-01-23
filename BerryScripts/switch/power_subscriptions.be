@@ -64,7 +64,7 @@ class PowerSubscriptions
     end
     
     def print()
-        log("---- Subscriptions (" + str(self.size()) + ") ----")
+        log("---- Power subscriptions (" + str(self.size()) + ") ----")
         if self.size() == 0
             log("No subscriptions configured")
         else
@@ -83,7 +83,7 @@ class PowerSubscriptions
             mqtt.subscribe(subscription.topic, def(topic, idx, payload)
                 var message = json.load(payload)
                 
-                var value = message[subscription.power]
+                var value = message.find(subscription.power)
                 if value != nil
                     if value == "ON"
                         if subscription.indicator == "SECONDARY"
@@ -100,7 +100,7 @@ class PowerSubscriptions
                 end
             end)
 
-            log("QARL: added subscription for topic: " + subscription.topic + " " + subscription.power + " " + subscription.indicator)
+            log("QARL: added power subscription for topic: " + subscription.topic + " " + subscription.power + " " + subscription.indicator)
         end
     end
 end
@@ -108,6 +108,10 @@ end
 var power_subscriptions = module("power_subscriptions")
 
 power_subscriptions.create_rules = def()
+    PowerSubscriptions().create_rules()
+end
+
+power_subscriptions.add_commands = def()
     tasmota.add_cmd("PwrSubs", def()
         PowerSubscriptions().print()
     end)

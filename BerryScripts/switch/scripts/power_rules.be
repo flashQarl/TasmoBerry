@@ -24,6 +24,11 @@ power_rules.create_power_rules = def()
         return
     end
 
+    if power_count == 1
+        log("LED 1 | POWERS 0")
+        return
+    end
+
     tasmota.add_rule("Power1#State", power1_changed)
     
     if power_count == 3

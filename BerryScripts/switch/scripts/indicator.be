@@ -5,15 +5,15 @@ def set_color(color)
 end
 
 def set_cleared_color()
-    set_color("0000FF") # Blue
+    set_color("0000AA") # Blue
 end
 
 def set_primary_color()
-    set_color("00FF00") # Green
+    set_color("00AA00") # Green
 end
 
 def set_secondary_color()
-    set_color("FF9900") # Orange
+    set_color("AA7700") # Orange
 end
 
 indicator.init = def(m)

@@ -29,15 +29,16 @@ class ButtonSubscriptions
     
     def init()
         self.subscriptions = []
-        
-        var mem2 = tasmota.cmd("Mem2")["Mem2"]
-        if mem2 != ""
-            var data = json.load(mem2)
+
+        try
+            var file = open('BtnSubs.json', 'r')
+            var data = json.load(file.read())
             if data.find("buttonSubscriptions")
                 for item : data["buttonSubscriptions"]
                     self.subscriptions.push(ButtonSubscription.from_json(item))
                 end
             end
+        except ..
         end
     end
     
@@ -50,8 +51,10 @@ class ButtonSubscriptions
         for i:0..self.size()-1
             data.push(self.subscriptions[i].to_map())
         end
-        var json_payload = json.dump({'buttonSubscriptions': data})
-        tasmota.cmd("Mem2 " + json_payload)
+
+        var file = open('BtnSubs.json', 'w')
+        file.write(json.dump({'buttonSubscriptions': data}))
+        file.close()
     end
     
     def add(topic, button, action, power)
@@ -107,26 +110,29 @@ end
 button_subscriptions.add_commands = def()
     tasmota.add_cmd("BtnSubs", def()
         ButtonSubscriptions().print()
+        tasmota.resp_cmnd_done()
     end)
     
     tasmota.add_cmd("AddBtnSub", def(cmd, idx, param)
         if param == ""
-            log("HELP: AddBtnSub <topic> <Button1|Button2|...> <SINGLE|HOLD> <POWER1|POWER2|...>")
+            tasmota.resp_cmnd_str("AddBtnSub <topic> <Button1|Button2|...> <SINGLE|HOLD> <POWER1|POWER2|...>");
         else
             var subscriptions = ButtonSubscriptions()
             var parts = string.split(param, " ")
             subscriptions.add(parts[0], parts[1], parts[2], parts[3])
             subscriptions.print()
+            tasmota.resp_cmnd_done()
         end
     end)
     
     tasmota.add_cmd("DelBtnSub", def(cmd, idx, param)
         if param == ""
-            log("HELP: DelBtnSub <subscription_index>")
+            tasmota.resp_cmnd_str("DelBtnSub <subscription_index>");
         else
             var subscriptions = ButtonSubscriptions()
             subscriptions.delete(int(param))
             subscriptions.print()
+            tasmota.resp_cmnd_done()
         end
     end)
 end

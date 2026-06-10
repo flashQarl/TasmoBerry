@@ -28,15 +28,16 @@ class PowerSubscriptions
     
     def init()
         self.subscriptions = []
-        
-        var mem1 = tasmota.cmd("Mem1")["Mem1"]
-        if mem1 != ""
-            var data = json.load(mem1)
+
+        try
+            var file = open('PwrSubs.json', 'r')
+            var data = json.load(file.read())
             if data.find("powerSubscriptions")
                 for item : data["powerSubscriptions"]
                     self.subscriptions.push(PowerSubscription.from_json(item))
                 end
             end
+        except ..
         end
     end
     
@@ -49,8 +50,10 @@ class PowerSubscriptions
         for i:0..self.size()-1
             data.push(self.subscriptions[i].to_map())
         end
-        var json_payload = json.dump({'powerSubscriptions': data})
-        tasmota.cmd("Mem1 " + json_payload)
+
+        var file = open('PwrSubs.json', 'w')
+        file.write(json.dump({'powerSubscriptions': data}))
+        file.close()
     end
     
     def add(topic, power, indicator)
@@ -118,26 +121,29 @@ end
 power_subscriptions.add_commands = def()
     tasmota.add_cmd("PwrSubs", def()
         PowerSubscriptions().print()
+        tasmota.resp_cmnd_done()
     end)
     
     tasmota.add_cmd("AddPwrSub", def(cmd, idx, param)
         if param == ""
-            log("HELP: AddPwrSub <topic> <POWER1|POWER2|...> [PRIMARY|SECONDARY]")
+            tasmota.resp_cmnd_str("AddPwrSub <topic> <POWER1|POWER2|...> [PRIMARY|SECONDARY]")
         else
             var subscriptions = PowerSubscriptions()
             var parts = string.split(param, " ")
             subscriptions.add(parts[0], parts[1], parts[2])
             subscriptions.print()
+            tasmota.resp_cmnd_done()
         end
     end)
     
     tasmota.add_cmd("DelPwrSub", def(cmd, idx, param)
         if param == ""
-            log("HELP: DelPwrSub <subscription_index>")
+            tasmota.resp_cmnd_str("DelPwrSub <subscription_index>")
         else
             var subscriptions = PowerSubscriptions()
             subscriptions.delete(int(param))
             subscriptions.print()
+            tasmota.resp_cmnd_done()
         end
     end)
 end
